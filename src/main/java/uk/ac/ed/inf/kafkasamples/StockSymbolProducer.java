@@ -1,20 +1,14 @@
 package uk.ac.ed.inf.kafkasamples;
 
 
-
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.protocol.types.Field;
-import org.apache.kafka.common.utils.Time;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
