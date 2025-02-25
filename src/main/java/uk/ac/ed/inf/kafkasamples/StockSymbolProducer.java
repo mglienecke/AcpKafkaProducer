@@ -1,6 +1,5 @@
 package uk.ac.ed.inf.kafkasamples;
 
-
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -17,17 +16,35 @@ import java.util.concurrent.TimeoutException;
 
 public class StockSymbolProducer {
 
-        public static void main(String[] args) throws IOException, InterruptedException {
+    /**
+     * The main method to start the stock symbol producer application.
+     * It validates the input arguments, initializes a StockSymbolProducer instance,
+     * and starts processing the configuration file to produce events to Kafka.
+     *
+     * @param args an array of command-line arguments where the first and only argument
+     *             is expected to be the path to the configuration file.
+     * @throws IOException if there is an error reading the configuration file.
+     * @throws InterruptedException if the processing is interrupted during execution.
+     */
+    public static void main(String[] args) throws IOException, InterruptedException {
         if (args.length != 1) {
             System.out.println("Please provide the configuration file path as a command line argument");
             System.exit(1);
         }
 
-        var producer = new StockSymbolProducer();
-        producer.process(args[0]);
+        var producer = new ...
+        producer....
     }
 
-    // We'll reuse this function to load properties from the Consumer as well
+    /**
+     * Loads configuration properties from the specified file.
+     * This method reads a properties file and returns the configuration as a {@link Properties} object.
+     * If the file does not exist, an {@link IOException} is thrown.
+     *
+     * @param configFile the path to the configuration file to be loaded
+     * @return a {@link Properties} object containing the configurations read from the file
+     * @throws IOException if the configuration file cannot be found or read
+     */
     public static Properties loadConfig(final String configFile) throws IOException {
         if (!Files.exists(Paths.get(configFile))) {
             throw new IOException(configFile + " not found.");
@@ -43,15 +60,23 @@ public class StockSymbolProducer {
     public final String KafkaTopicConfig = "kafka.topic";
     public final String KafkaContinuousTopicConfig = "send.operation.continuous";
 
+    /**
+     * Processes the given configuration file to produce Kafka events based on stock symbols.
+     * It reads configurations, initializes a Kafka producer, and sends messages to a Kafka topic.
+     * Depending on the configuration, it can operate in continuous or single-record mode.
+     *
+     * @param configFileName the path to the configuration file containing Kafka and application settings
+     * @throws IOException if an error occurs while loading the configuration file
+     * @throws InterruptedException if the processing thread is interrupted
+     */
     private void process(String configFileName) throws IOException, InterruptedException {
         Properties kafkaPros = StockSymbolProducer.loadConfig(configFileName);
 
-        var producer = new KafkaProducer<String, String>(kafkaPros);
+        //TODO: Create a new producer
+
         String[] symbols = ((String) kafkaPros.get(StockSymbolsConfig)).split(",");
 
-        int recordCount = 0;
         final String topic = kafkaPros.getProperty(KafkaTopicConfig);
-        // final String key = String.valueOf(new Random().nextInt(0, Integer.MAX_VALUE));
         final boolean continuousMode = Boolean.parseBoolean(kafkaPros.getProperty(KafkaContinuousTopicConfig));
 
         try {
@@ -61,18 +86,20 @@ public class StockSymbolProducer {
                 final String key = symbols[new Random().nextInt(symbols.length)];
                 final String value = String.valueOf(valueCounter++);
 
-                producer.send(new ProducerRecord<>(topic, key, value), (recordMetadata, ex) -> {
+                // TODO: Send a new record to the topic and wait for the ACK (get)
+                producer.XXX(new YYY...<>(topic, key, value), (recordMetadata, ex) -> {
                     if (ex != null)
                         ex.printStackTrace();
                     else
                         System.out.printf("Produced event to topic %s: key = %-10s value = %s%n", topic, key, value);
-                }).get(1000, TimeUnit.MILLISECONDS);
+                }).get(5000, TimeUnit.MILLISECONDS);
 
                 if (! continuousMode) {
                     break;
                 }
 
-                Thread.sleep(100);
+                // TODO: Sleep 100 msec in current thread
+                ...
             }
 
             System.out.println("1 record sent to Kafka");
@@ -83,8 +110,7 @@ public class StockSymbolProducer {
             System.err.println("timeout exc: " + e);
         }
 
-        producer.flush();
-        producer.close();
+        // TODO: Flush and close
     }
 }
 
