@@ -1,8 +1,10 @@
-bootstrap.servers=...:9092
+# bootstrap.servers=localhost:9092
+bootstrap.servers=docker.host.internal:9092
+# bootstrap.servers=pkc-l6wr6.europe-west2.gcp.confluent.cloud:9092
 
-security.protocol=SASL_SSL
-sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='...XXX...' password='...YYY...';
-sasl.mechanism=PLAIN
+# security.protocol=SASL_SSL
+# sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='XFS7YTSP5BK7P5W5' password='AV5Lh69yVph+dZvEaa1GNbooj2YSEwDLtgVNVzpB7A1XIC/lUO5NtVCX/EMldWal';
+# sasl.mechanism=PLAIN
 
 # Required for correctness in Apache Kafka clients prior to 2.6
 client.dns.lookup=use_all_dns_ips
@@ -17,6 +19,6 @@ key.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 
 kafka.topic=stockvalues
-stock.symbols=AAPL,MSFT,GOOG,AMZN,TSLA
+stock.symbols=AAPL,MSFT,GOOG,AMZN,TSLA,JPMC,CATP,UNIL,LLOY
 
 send.operation.continuous=true

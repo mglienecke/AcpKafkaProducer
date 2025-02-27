@@ -27,33 +27,7 @@ public class StockSymbolProducer {
      * @throws InterruptedException if the processing is interrupted during execution.
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        if (args.length != 1) {
-            System.out.println("Please provide the configuration file path as a command line argument");
-            System.exit(1);
-        }
-
-        var producer = new ...
-        producer....
-    }
-
-    /**
-     * Loads configuration properties from the specified file.
-     * This method reads a properties file and returns the configuration as a {@link Properties} object.
-     * If the file does not exist, an {@link IOException} is thrown.
-     *
-     * @param configFile the path to the configuration file to be loaded
-     * @return a {@link Properties} object containing the configurations read from the file
-     * @throws IOException if the configuration file cannot be found or read
-     */
-    public static Properties loadConfig(final String configFile) throws IOException {
-        if (!Files.exists(Paths.get(configFile))) {
-            throw new IOException(configFile + " not found.");
-        }
-        final Properties cfg = new Properties();
-        try (InputStream inputStream = new FileInputStream(configFile)) {
-            cfg.load(inputStream);
-        }
-        return cfg;
+        new StockSymbolProducer().process();
     }
 
     public final String StockSymbolsConfig = "stock.symbols";
@@ -65,19 +39,17 @@ public class StockSymbolProducer {
      * It reads configurations, initializes a Kafka producer, and sends messages to a Kafka topic.
      * Depending on the configuration, it can operate in continuous or single-record mode.
      *
-     * @param configFileName the path to the configuration file containing Kafka and application settings
-     * @throws IOException if an error occurs while loading the configuration file
      * @throws InterruptedException if the processing thread is interrupted
      */
-    private void process(String configFileName) throws IOException, InterruptedException {
-        Properties kafkaPros = StockSymbolProducer.loadConfig(configFileName);
-
-        //TODO: Create a new producer
+    private void process() throws InterruptedException {
+        Properties kafkaPros = getProperties();
+        KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaPros);
 
         String[] symbols = ((String) kafkaPros.get(StockSymbolsConfig)).split(",");
 
         final String topic = kafkaPros.getProperty(KafkaTopicConfig);
-        final boolean continuousMode = Boolean.parseBoolean(kafkaPros.getProperty(KafkaContinuousTopicConfig));
+        final boolean continuousMode = Boolean.parseBoolean(kafkaPros.getProperty(KafkaContinuousTopicConfig, "false"));
+        System.out.println("continuous mode : " + continuousMode);
 
         try {
             int valueCounter = 1;
@@ -85,9 +57,7 @@ public class StockSymbolProducer {
             while (true) {
                 final String key = symbols[new Random().nextInt(symbols.length)];
                 final String value = String.valueOf(valueCounter++);
-
-                // TODO: Send a new record to the topic and wait for the ACK (get)
-                producer.XXX(new YYY...<>(topic, key, value), (recordMetadata, ex) -> {
+                producer.send(new ProducerRecord<>(topic, key, value), (recordMetadata, ex) -> {
                     if (ex != null)
                         ex.printStackTrace();
                     else
@@ -97,9 +67,7 @@ public class StockSymbolProducer {
                 if (! continuousMode) {
                     break;
                 }
-
-                // TODO: Sleep 100 msec in current thread
-                ...
+                Thread.sleep(100);
             }
 
             System.out.println("1 record sent to Kafka");
@@ -110,7 +78,25 @@ public class StockSymbolProducer {
             System.err.println("timeout exc: " + e);
         }
 
-        // TODO: Flush and close
+        producer.flush();
+        producer.close();
+    }
+
+    private Properties getProperties() {
+        Properties kafkaPros = new Properties();
+        kafkaPros.put("bootstrap.servers", "kafka:9093");
+        // kafkaPros.put("bootstrap.servers", "127.0.0.1:9092");
+
+        kafkaPros.put("group.id", "ACP_CW2_Group");
+        kafkaPros.put("acks", "all");
+        kafkaPros.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaPros.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaPros.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        kafkaPros.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        kafkaPros.put("kafka.topic", "stockvalues");
+        kafkaPros.put("stock.symbols", "AAPL,MSFT,GOOG,AMZN,TSLA,JPMC,CATP,UNIL,LLOY");
+        kafkaPros.put("send.operation.continuous", "true");
+        return kafkaPros;
     }
 }
 
