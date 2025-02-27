@@ -1,0 +1,37 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="docker" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="acp-kafka-producer" />
+        <option name="containerName" value="acp-kafka-producer" />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="KAFKA_BOOTSTRAP_SERVERS" />
+              <option name="value" value="kafka:9093" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="RABBITMQ_HOST" />
+              <option name="value" value="12" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="RABBITMQ_PORT" />
+              <option name="value" value="12" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="REDIS_HOST" />
+              <option name="value" value="host.docker.internal" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="REDIS_PORT" />
+              <option name="value" value="6379" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="commandLineOptions" value="--network acp_my_network" />
+        <option name="sourceFilePath" value="dockerfile" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

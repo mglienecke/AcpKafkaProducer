@@ -2,12 +2,14 @@ package uk.ac.ed.inf.kafkasamples;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class StockSymbolProducer {
+
+    private static RuntimeEnvironmentSettings settings = checkEnvironment();
 
     /**
      * The main method to start the stock symbol producer application.
@@ -27,7 +31,66 @@ public class StockSymbolProducer {
      * @throws InterruptedException if the processing is interrupted during execution.
      */
     public static void main(String[] args) throws IOException, InterruptedException {
+
+        try (JedisPool pool = new JedisPool(settings.getRedisHost(), settings.getRedisPort());
+                Jedis jedis = pool.getResource()) {
+            final Logger logger = LoggerFactory.getLogger(StockSymbolProducer.class);
+
+            logger.info("Redis connection established");
+
+            // Store & Retrieve a simple string
+            jedis.set("foo", "bar");
+            System.out.println(jedis.get("foo")); // prints bar
+
+            // Store & Retrieve a HashMap
+            Map<String, String> hash = new HashMap<>();
+            ;
+            hash.put("name", "Michel");
+            hash.put("surname", "Glienecke");
+            hash.put("company", "On my own");
+            hash.put("age", "xx");
+            jedis.hset("user-session:123", hash);
+            System.out.println(jedis.hgetAll("user-session:123"));
+
+
+            jedis.set("myKey", "{ \"a\": 1 }");
+            System.out.println(jedis.get("myKey"));
+
+            // Prints: {name=John, surname=Smith, company=Redis, age=29}
+        }
+
         new StockSymbolProducer().process();
+    }
+
+    private static RuntimeEnvironmentSettings checkEnvironment() {
+        RuntimeEnvironmentSettings settings = new RuntimeEnvironmentSettings();
+
+        if (System.getenv("KAFKA_BOOTSTRAP_SERVERS") == null) {
+            throw new RuntimeException("KAFKA_BOOTSTRAP_SERVERS environment variable not set");
+        }
+        settings.setKafkaBootstrapServers(System.getenv("KAFKA_BOOTSTRAP_SERVERS"));
+
+        if (System.getenv("REDIS_HOST") == null) {
+            throw new RuntimeException("REDIS_HOST environment variable not set");
+        }
+        settings.setRedisHost(System.getenv("REDIS_HOST"));
+
+        if (System.getenv("REDIS_PORT") == null) {
+            throw new RuntimeException("REDIS_PORT environment variable not set");
+        }
+        settings.setRedisPort(Integer.parseInt(System.getenv("REDIS_PORT")));
+
+        if (System.getenv("RABBITMQ_HOST") == null) {
+            throw new RuntimeException("RABBITMQ_HOST environment variable not set");
+        }
+        settings.setRabbitmqHost(System.getenv("RABBITMQ_HOST"));
+
+        if (System.getenv("RABBITMQ_PORT") == null) {
+            throw new RuntimeException("RABBITMQ_PORT environment variable not set");
+        }
+        settings.setRabbitmqPort(Integer.parseInt(System.getenv("RABBITMQ_PORT")));
+
+        return settings;
     }
 
     public final String StockSymbolsConfig = "stock.symbols";
@@ -84,6 +147,7 @@ public class StockSymbolProducer {
 
     private Properties getProperties() {
         Properties kafkaPros = new Properties();
+        // kafkaPros.put("bootstrap.servers", "acp-kafka-1:9093");
         kafkaPros.put("bootstrap.servers", "kafka:9093");
         // kafkaPros.put("bootstrap.servers", "127.0.0.1:9092");
 
